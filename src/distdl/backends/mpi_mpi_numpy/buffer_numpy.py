@@ -1,7 +1,9 @@
 import numpy as np
 
+from ..common.buffer import MPIBufferManager, MPIExpandableBuffer
 
-class MPIExpandableBuffer:
+
+class MPIExpandableNumpyBuffer(MPIExpandableBuffer):
     r"""NumPy (mpi4py compatible) implementation of expandable buffers.
 
     For use as intermediate communication buffers, as is common in MPI-based
@@ -81,61 +83,8 @@ class MPIExpandableBuffer:
 
         self.views = new_views
 
-    def allocate_view(self, view_shape):
-        r"""Reserves a new view, with provided the shape, into the buffer.
 
-        A NumPy `ndarray` view of the 1D internal buffer with the desired
-        shape will be created.
-
-        Parameters
-        ----------
-        view_shape : iterable
-            Shape of the desired view.
-
-        """
-
-        # Ensure the shape is hashable
-        view_shape = tuple(view_shape)
-
-        self.get_view(view_shape)
-
-    def get_view(self, view_shape):
-        r"""Returns a view, with the provided shape, into the buffer.
-
-        A NumPy `ndarray` view of the 1D internal buffer with the desired
-        shape will be returned.  If the view does not exist it will be
-        created.
-
-        Parameters
-        ----------
-        view_shape : iterable
-            Shape of the desired view.
-
-        Returns
-        -------
-        The requested view.
-
-        """
-
-        # Ensure the shape is hashable
-        view_shape = tuple(view_shape)
-
-        # If there is already a view of this shape, then return it
-        if view_shape in self.views:
-            return self.views[view_shape]
-
-        # If new shape is larger than the buffer, expand the buffer
-        view_volume = np.prod(view_shape)
-        if view_volume > self.capacity:
-            self.expand(view_volume)
-
-        # Create the new view and return it
-        self.views[view_shape] = self.raw_buffer[:view_volume].reshape(view_shape)
-
-        return self.views[view_shape]
-
-
-class MPIBufferManager:
+class MPINumpyBufferManager(MPIBufferManager):
     r"""NumPy (mpi4py compatible) implementation of an expandable buffer
     manager.
 
@@ -153,8 +102,7 @@ class MPIBufferManager:
     """
 
     def __init__(self):
-
-        self.buffers_map = dict()
+        super().__init__()
 
     def request_buffers(self, n_buffers, dtype, **kwargs):
         r"""Acquire a list of buffers of a specific dtype, creating them if
@@ -181,7 +129,7 @@ class MPIBufferManager:
 
         # If there are not enough, create more buffers with that dtype
         for i in range(n_buffers - len(dtype_buffers)):
-            dtype_buffers.append(MPIExpandableBuffer(dtype, **kwargs))
+            dtype_buffers.append(MPIExpandableNumpyBuffer(dtype, **kwargs))
 
         # Return the requested number of buffers
         return dtype_buffers[:n_buffers]

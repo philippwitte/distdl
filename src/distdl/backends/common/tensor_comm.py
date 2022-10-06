@@ -20,6 +20,7 @@ def broadcast_tensor_structure(input_tensor_structure, P_send, P_recv):
     if P_send.active:
         # Share the torch dtype code, converted to an int.
         intID_dtype = torch_to_intID_dtype_dict[input_tensor_structure.dtype]
+        
         send_intID_dtype = np.array([intID_dtype], dtype=np.int)
         req = P_send._comm.Iallreduce(MPI.IN_PLACE, send_intID_dtype, op=MPI.MAX)
         requests.append(req)
@@ -122,6 +123,7 @@ def assemble_global_tensor_structure(local_tensor_structure, P_in, P_out=None):
 
         # Get a communicable integer representing the dtype
         intID_dtype = torch_to_intID_dtype_dict[local_tensor_structure.dtype]
+        
         intID_dtype = np.array([intID_dtype], dtype=np.int)
 
         requires_grad_int = np.array([-1], dtype=np.int)
