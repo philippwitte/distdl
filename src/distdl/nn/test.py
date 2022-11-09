@@ -14,31 +14,15 @@ A = np.ones((n, m))*(rank+1)
 #######################################################################
 # Forward 
 
-# Reduce
-if rank == 0:
-    B = np.empty((n, m))
-else:
-    B = None
-comm.Reduce(A, B, op=MPI.SUM, root=0)
-
-# Scatter
-C = np.empty((n, m // size))
-comm.Scatter(B, C, root=0)
+B = np.empty((n, m // size))
+comm.Ireduce_scatter(A, B, op=MPI.SUM)
+#print(B)
 
 #######################################################################
 # Backward
 
-# Gather
-if rank == 0:
-    D = np.empty((n, m))
-else:
-    D = None
-comm.Gather(C, D, root=0)
+# Allgather
+C = np.empty((n, m))
+comm.Allgather(B, C)
 
-if rank != 0:
-    D = np.empty((n, m))
-comm.Bcast(D, root=0)
-print(D)
-
-
-[1, 1, 1, 1] -> [4, 1, 1, 1]
+print(C)
