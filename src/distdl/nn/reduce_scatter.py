@@ -1,8 +1,7 @@
 from distdl.nn.module import Module
 from distdl.utilities.torch import TensorStructure
-from distdl.utilities.slicing import compute_subshape
-import numpy as np
-import torch
+from distdl.utilities.slicing import compute_subshape_along_axis
+
 
 class ReduceScatter(Module):
     r"""A distributed all-sum-reduce layer.
@@ -99,18 +98,13 @@ class ReduceScatter(Module):
             self.P_reducescatter = self.P_x.create_allreduction_partition(self.axes_reduce_scatter,
                 initialize_backend_comm=True)
             self.input_tensor_structure = TensorStructure(input[0])
+            self.output_tensor_structure = TensorStructure(input[0])
 
-            self.output_tensor_structure = self.input_tensor_structure
+            self.output_tensor_structure.shape = compute_subshape_along_axis(self.P_x.shape, 
+                self.P_x.index, self.input_tensor_structure.shape, self.axes_reduce_scatter)
 
-            # TODO: Fix dimensions
-            axis = self.axes_reduce_scatter[0]
-            self.output_tensor_structure.shape[axis] = compute_subshape(
-                self.P_x.shape[axis], 
-                self.P_x.index[axis], 
-                self.input_tensor_structure.shape[axis]
-            )
-            print("input shape: ", self.input_tensor_structure.shape)
-            print("output shape: ", self.output_tensor_structure.shape)
+            #print("input shape: ", self.input_tensor_structure.shape)
+            #print("output shape: ", self.output_tensor_structure.shape)
 
         self._distdl_is_setup = True
         self._input_tensor_structure = TensorStructure(input[0])

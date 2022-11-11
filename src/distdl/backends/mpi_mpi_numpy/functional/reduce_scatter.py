@@ -75,7 +75,7 @@ class ReduceScatterFunction(torch.autograd.Function):
         if P_reducescatter.active:
             numpy_dtype = torch_to_numpy_dtype_dict[input_tensor_structure.dtype]
 
-            scattered_data = np.zeros((3,2), dtype=numpy_dtype)
+            scattered_data = np.zeros(output_tensor_structure.shape, dtype=numpy_dtype)
             input_numpy = input.detach().cpu().numpy()
             req = P_reducescatter._comm.Ireduce_scatter(input_numpy, scattered_data, op=MPI.SUM)
             requests.append(req)
