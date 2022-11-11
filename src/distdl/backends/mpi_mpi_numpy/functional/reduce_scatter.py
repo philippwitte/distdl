@@ -8,7 +8,7 @@ from distdl.utilities.dtype import torch_to_numpy_dtype_dict
 from distdl.utilities.torch import zero_volume_tensor
 
 
-class ReduceScatteFunction(torch.autograd.Function):
+class ReduceScatterFunction(torch.autograd.Function):
     r"""MPI-based functional implementation of a distributed reduce-scatter layer.
 
     Implements the required `forward()` and adjoint (`backward()`) operations
